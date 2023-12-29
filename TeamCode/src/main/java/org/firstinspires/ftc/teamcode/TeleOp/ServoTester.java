@@ -97,9 +97,14 @@ public class ServoTester extends LinearOpMode { //This is a class named "ServoTe
              */
             if (controller1.a.onPress()) {
                 servoNum += 1;
+                //servoNum = servoNum + 1
                 servoNum %= 6;
+                //servoNum = servoNum % 6
+                //keep it within a range
                 pos = 0;
             }
+
+            // Servo[] servoArray = {climbRelease, drone, lClaw, rClaw, LCTilt, RCTilt};
 
             servoArray[servoNum].setPosition(pos);
             /*
