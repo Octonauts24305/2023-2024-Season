@@ -10,7 +10,8 @@ import org.firstinspires.ftc.teamcode.Utils.GamepadEvents;
 /*
 These lines of import statements bring in necessary libraries that people have written. We are using
 these to access some of the framework, such as LinearOpMode, and some of the physical devices, such
-as Servos.
+as servos or motors. In most IDEs (Integrated Development Environments), they will automatically
+import libraries that you use.
  */
 
 
