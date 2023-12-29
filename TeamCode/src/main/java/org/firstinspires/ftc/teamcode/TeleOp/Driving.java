@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,8 +22,9 @@ import libraries that you use.
 public class Driving extends LinearOpMode { //This is a class named "Driving"
     DcMotor frontLeft, backLeft, frontRight, backRight, climb, lift; //Defining that the motors are plugged in on the robot
     Servo climbRelease, drone, claw, tilt; //Defining that the servos are plugged in on the robot
-    boolean open, isClimbing; // two necessary "true or false" used for your claw and climb, in that order respectively
+    boolean open, tilted, isClimbing; // two necessary "true or false" used for your claw and climb, in that order respectively
     GamepadEvents controller1; // a custom library made by hazen to use controller inputs more efficiently
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -35,7 +37,7 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
 
         For instance, for frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
         can be read as "the value of frontLeft can be found when we get a DcMotorEx named
-        "climbRelease" from the hardwareMap"
+        "fl" from the hardwareMap"
 
         We also reverse the direction of the left motors, because we have to account for
         how it is positioned on the robot.
@@ -46,9 +48,9 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
         the motor into a specific "mode", where it is able to perform specific tasks only while
         in that mode.
 
-        Again, line 62 can be read as a sentence.
+        Again, line 65 can be read as a sentence.
         "set the mode of the climb to STOP_AND_RESET_ENCODER"
-         */
+        */
         controller1 = new GamepadEvents(gamepad1);
 
         frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
@@ -63,6 +65,7 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
         climb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climb.setDirection(com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE);
         lift = hardwareMap.get(DcMotorEx.class, "lift");
+        lift.setDirection(DcMotorSimple.Direction.REVERSE);
         climbRelease = hardwareMap.get(Servo.class, "climbRelease");
         drone = hardwareMap.get(Servo.class, "drone");
         claw = hardwareMap.get(Servo.class, "claw");
@@ -93,9 +96,9 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
             controller, and that is how we deal with it.
 
              */
-            double drive = -gamepad1.left_stick_y;
-            double rotate = gamepad1.right_stick_x;
-            double strafe = gamepad1.left_stick_x;
+            double drive = -controller1.right_stick_y;
+            double rotate = controller1.right_stick_x;
+            double strafe = controller1.left_stick_x;
 
             /*
             Our motors are controlled by a bit of math, adding a bit of drive, strafe, and rotate
@@ -108,39 +111,32 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
 
             // bumper L/R claw toggle, A CLimb release, B drone, X climb toggle,
             // Dpad Up Claw down claw, trigger lif up/down
-            double upPower = gamepad1.left_trigger;
-            double downPower = -gamepad1.right_trigger;
+
+            //Lift Triggers
+            //Claw toggle X
+            //Drone Y
+            //Climb Start
+            //Climb Release A
+            //Tilt toggle B
+            double upPower = controller1.right_trigger.getTriggerValue();
+            double downPower = -controller1.left_trigger.getTriggerValue();
             lift.setPower(upPower + downPower);
 
-            if (controller1.right_bumper.onPress()) {
+            if (controller1.x.onPress()) {
                 if (open)
                     claw.setPosition(0);
                 else
                     claw.setPosition(1);
 
                 open = !open;
+                //!True -- False
+                //!False -- True
+                //!(True || False) -- False
+                //!(False && True) -- True
+
             }
 
-            if (gamepad1.start) {
-                climb.setPower(-1);
-            }
-            if (controller1.dpad_up.onPress()) {
-                tilt.setPosition(0);
-            }
-
-            if (controller1.dpad_down.onPress()) {
-                tilt.setPosition(1);
-            }
-
-            if (controller1.b.onPress()) {
-                drone.setPosition(0.5); //release
-            }
-
-            if (controller1.a.onPress()) {
-                climbRelease.setPosition(0.5); //release
-            }
-
-            if (controller1.x.onPress()) {
+            if (controller1.start.onPress()) {
                 if (!isClimbing) {
                     isClimbing = true;
                     double distance = 10; //in inches ( 10 or 12)
@@ -151,6 +147,23 @@ public class Driving extends LinearOpMode { //This is a class named "Driving"
                     isClimbing = false;
                     climb.setPower(0);
                 }
+            }
+
+            if (controller1.y.onPress()) {
+                drone.setPosition(0.5);
+            }
+
+            if (controller1.b.onPress()) {
+                if (tilted)
+                    tilt.setPosition(0);
+                else
+                    tilt.setPosition(1);
+
+                tilted = !tilted;
+            }
+
+            if (controller1.a.onPress()) {
+                climbRelease.setPosition(0.5);
             }
 
             controller1.update();
